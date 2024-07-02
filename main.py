@@ -10,7 +10,7 @@ def load_cities(filename):
             if len(loaded_cities) >= 80:
                 break
             parts = line.split()
-            loaded_cities.append((float(parts[1]), float(parts[2])))  # Assuming the format is ID X Y
+            loaded_cities.append((float(parts[1]), float(parts[2])))
     return loaded_cities
 
 
@@ -33,24 +33,26 @@ def select_parents(population, cities):
 
 def pmx_crossover(parent1, parent2):
     size = len(parent1)
-    child1, child2 = parent1[:], parent2[:]
-    p1, p2 = [0] * size, [0] * size
+    child1 = [-1] * size
+    child2 = [-1] * size
 
+    cxpoint1, cxpoint2 = sorted([random.randint(0, size - 1) for _ in range(2)])
+
+    # Copy the crossover segment to children
+    for i in range(cxpoint1, cxpoint2 + 1):
+        child1[i] = parent1[i]
+        child2[i] = parent2[i]
+
+    def map_value(val, parent, child, cxpoint1, cxpoint2):
+        while val in child[cxpoint1:cxpoint2 + 1]:
+            val = parent[child.index(val)]
+        return val
+
+    # Fill the remaining positions
     for i in range(size):
-        p1[parent1[i]] = i
-        p2[parent2[i]] = i
-
-    cxpoint1, cxpoint2 = sorted([random.randint(0, size) for _ in range(2)])
-
-    for i in range(cxpoint1, cxpoint2):
-        temp1 = child1[i]
-        temp2 = child2[i]
-
-        child1[i], child1[p1[temp2]] = temp2, temp1
-        child2[i], child2[p2[temp1]] = temp1, temp2
-
-        p1[temp1], p1[temp2] = p1[temp2], p1[temp1]
-        p2[temp1], p2[temp2] = p2[temp2], p2[temp1]
+        if i < cxpoint1 or i > cxpoint2:
+            child1[i] = map_value(parent2[i], parent2, child1, cxpoint1, cxpoint2)
+            child2[i] = map_value(parent1[i], parent1, child2, cxpoint1, cxpoint2)
 
     return child1, child2
 
